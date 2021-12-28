@@ -457,10 +457,12 @@ def train_model(args, train_loader, test_loader, spider_loader):
         outer_update = torch.squeeze(outer_update)
         with torch.no_grad():
             weight = weight - args.outer_lr*outer_update
-        if (args.alg == 'VRBO') & (epoch % args.spider_epoch !=0):
-            lambda_index_outer = (lambda_index_outer+args.spider_size) % args.training_size
-        else:
-            lambda_index_outer = (lambda_index_outer+args.batch_size) % args.training_size
+            if args.alg == 'VRBO':
+                lambda_x[lambda_index_outer: lambda_index_outer+args.spider_size] = weight
+                lambda_index_outer = (lambda_index_outer+args.spider_size) % args.training_size
+            else:
+                lambda_x[lambda_index_outer: lambda_index_outer+args.batch_size] = weight
+                lambda_index_outer = (lambda_index_outer+args.batch_size) % args.training_size
 
         if args.alg == 'reverse' or args.alg == 'AID-CG' or args.alg == 'AID-FP':
             train_loss_avg = loss_train_avg(train_loader, final_params[0], device, batch_num)
